@@ -6,13 +6,14 @@ import (
 )
 
 func TestFindVideosIDs(t *testing.T) {
-	response := findVideos("kero kero break", 5)
+	response, err := findVideos("kero kero break", 5)
+	if err != nil {
+		t.Error(err)
+	}
 	items := parseResponse(response)
-	fmt.Println(items.Items[0].Id.VideoId)
+	fmt.Println("List of videos ids found.")
 	for _, v := range items.Items {
 		fmt.Println(v.Id.VideoId)
 	}
 
 }
-
-

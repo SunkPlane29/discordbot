@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type Items struct {
@@ -22,24 +23,24 @@ type Id struct {
 
 // Gets a video list through a GET request returning a json file, now need to fetch the videos ids
 // in that json
-func findVideos(search string, maxResults int) []byte {
+func findVideos(search string, maxResults int) ([]byte, error) {
 
-	APIKey := "AIzaSyA-NPrfWfSxI5v_fL1KI8HvD8Z8x9KOAnU"
+	APIKey := os.Getenv("GOOGLE_API_KEY")
 
 	baseUrl := "https://www.googleapis.com/youtube/v3/search?"
 
 	url := baseUrl + fmt.Sprintf("maxResults=%d", maxResults) + "&q=" + formatSearchUrl(search) + "&key=" + APIKey
 	r, err := http.Get(url)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	respBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return respBytes
+	return respBytes, nil
 
 }
 

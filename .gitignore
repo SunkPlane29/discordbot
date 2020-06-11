@@ -5,6 +5,12 @@
 *.so
 *.dylib
 
+/bin
+*.mp3
+*.mp3~
+*.mp4
+*.mp4~
+
 # Test binary, built with `go test -c`
 *.test
 
