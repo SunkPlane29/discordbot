@@ -10,3 +10,8 @@ func formatSearchUrl(search string) string {
 	searchUrl := strings.Join(searchContents, "%20")
 	return searchUrl
 }
+
+func formatDownloadUrl(videoId string) string {
+	baseUrl := "https://www.youtube.com/watch?v="
+	return baseUrl + videoId
+}
