@@ -1,0 +1,35 @@
+[33mcommit d748c8336ecac772b7abf8cd6e84b9e67b3187fe[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: André <andrezito300@gmail.com>
+Date:   Thu Jun 11 10:52:48 2020 -0300
+
+     #2 youtube package on it's way
+
+[33mcommit eb7ac2ff66638a3d820e45adc3986531c693a55e[m
+Author: André <andrezito300@gmail.com>
+Date:   Wed Jun 10 19:58:57 2020 -0300
+
+     #1.3 removed bin directory
+
+[33mcommit 86b1e55b05c8a0775e0b632c3b3f77d3e8df42c9[m
+Author: André <andrezito300@gmail.com>
+Date:   Wed Jun 10 19:57:08 2020 -0300
+
+     #1.2 moved gitignore
+
+[33mcommit b8e14f0156f1e343b54a07b329501cea87707903[m
+Author: André <andrezito300@gmail.com>
+Date:   Wed Jun 10 19:55:08 2020 -0300
+
+     #1.1 Added gitignore file
+
+[33mcommit c4152fb41a17cc2ee724cce2bcac05b80229eef8[m
+Author: André <andrezito300@gmail.com>
+Date:   Wed Jun 10 19:51:14 2020 -0300
+
+     #1 created some basic dirs and started youtube package
+
+[33mcommit 87e04854c3bc6e2a740d08c4ea7b60663e714591[m
+Author: André <andrezito300@gmail.com>
+Date:   Wed Jun 10 10:03:46 2020 -0300
+
+     First comit
