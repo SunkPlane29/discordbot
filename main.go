@@ -74,15 +74,15 @@ func messageCreate(s *dgo.Session, m *dgo.MessageCreate) {
 	switch message[0] {
 	case play:
 		filename := playCommand(s, m, message[1])
+		filepath := "./assets/audios/" + filename
 
-		buffer := make([][]byte, 0)
-		err := loadSong("./assets/audios/"+filename, &buffer)
+		songCh := make(chan []byte, 1024)
 
-		if err != nil {
-			reply(s, m, "Could not load file.")
-		}
+		go loadSong(filepath, songCh)
+		time.Sleep(time.Second * 5)
+		go playSong(s, m, songCh)
 
-		playSong(s, m, &buffer)
+		// playSong(s, m, &buffer)
 
 	case stop:
 		// Stop all musics from playing
@@ -152,6 +152,7 @@ func disbandCommand(s *dgo.Session, m *dgo.MessageCreate) {
 
 }
 
+// Change the name later and do the summon function outside function
 func playCommand(s *dgo.Session, m *dgo.MessageCreate, title string) string {
 	summonCommand(s, m)
 	filename, err := ytdl.DownloadDca(title, "./assets/audios/")
@@ -169,10 +170,9 @@ func playCommand(s *dgo.Session, m *dgo.MessageCreate, title string) string {
 
 }
 
-// Loads the song as shown in discordgo example, in this case it takes as
-// parameter a pointer to a buffer in order to reset the buffer every new
-// command, instead of a global variable.
-func loadSong(filepath string, buffer *[][]byte) error {
+// Functions cuncurrently with playSong, but with a headstart, the frames are
+// sent to the channel passed as parameters.
+func loadSong(filepath string, ch chan []byte) error {
 	fmt.Println("Loading song to buffer")
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -183,48 +183,38 @@ func loadSong(filepath string, buffer *[][]byte) error {
 
 	for {
 		err = binary.Read(file, binary.LittleEndian, &opuslen)
-		fmt.Println(opuslen)
-
-		fmt.Println("Before EOF thingy")
 		if err == io.EOF || err == io.ErrUnexpectedEOF {
-			fmt.Println("Inside EOF check, before close")
 			err = file.Close()
 			if err != nil {
-				fmt.Println("Inside error close")
 				fmt.Println(err)
 				return err
 			}
-			fmt.Println("Before return nil")
 			return nil
 		}
 
-		fmt.Println("Before error nil check 1")
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 
-		fmt.Println("Before creating InBuf")
 		if opuslen < 0 {
 			opuslen = opuslen * -1
 		}
+
 		InBuf := make([]byte, opuslen)
-		fmt.Println("Before reading to InBuf")
 		err := binary.Read(file, binary.LittleEndian, &InBuf)
 
-		fmt.Println("Before error nil check 2")
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 
-		fmt.Println("Before appending InBuf to buffer")
-		*buffer = append(*buffer, InBuf)
+		ch <- InBuf
 	}
 }
 
-func playSong(s *dgo.Session, m *dgo.MessageCreate, buffer *[][]byte) error {
-	fmt.Println("Playing song from buffer")
+// Functions cuncurrently with loadSong but with a delay to make the sound more reliable.
+func playSong(s *dgo.Session, m *dgo.MessageCreate, ch chan []byte) error {
 	c, err := s.State.Channel(m.ChannelID)
 	if err != nil {
 		return err
@@ -239,8 +229,9 @@ func playSong(s *dgo.Session, m *dgo.MessageCreate, buffer *[][]byte) error {
 	vc.Speaking(true)
 
 	fmt.Println("Sending audio")
-	for _, buff := range *buffer {
-		vc.OpusSend <- buff
+	for {
+		frame := <-ch
+		vc.OpusSend <- frame
 	}
 
 	vc.Speaking(false)

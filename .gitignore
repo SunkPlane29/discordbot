@@ -7,15 +7,15 @@
 
 /bin
 
-# Ignore mp3 files
+# Downloaded files
 *.mp3
 *.mp3~
 
-# Ignore mp4 files
+# Downloaded files
 *.mp4
 *.mp4~
 
-# Ignore dca files
+# Converted files
 *.dca
 *.dca~
 
