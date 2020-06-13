@@ -6,10 +6,18 @@
 *.dylib
 
 /bin
+
+# Ignore mp3 files
 *.mp3
 *.mp3~
+
+# Ignore mp4 files
 *.mp4
 *.mp4~
+
+# Ignore dca files
+*.dca
+*.dca~
 
 # Test binary, built with `go test -c`
 *.test

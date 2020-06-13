@@ -12,20 +12,20 @@ import (
 // Download mp3 files to then convert them to dca (actually it downloads
 // mp4 file first) to then, after 5 minutes deleting them from the computer
 // (you don't want to have all musics stored on your pc)
-func DownloadDca(title, filepath string) error {
+func DownloadDca(title, filepath string) (string, error) {
 	filename, err := downloadAudio(title)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = convertDca(filepath, filename)
 	if err != nil {
-		return err
+		return "", err
 	}
 	go func() {
 		time.Sleep(time.Minute * 5)
 		os.Remove(filepath + filename + ".dca")
 	}()
-	return nil
+	return filename + ".dca", nil
 }
 
 // Converts mp4 files given a filepath to dca files and deletes the original.

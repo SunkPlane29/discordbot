@@ -1,11 +1,15 @@
 package main
 
 import (
+	"encoding/binary"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/SunkPlane29/discordbot/pkg/ytdl"
 	dgo "github.com/bwmarrin/discordgo"
@@ -69,7 +73,17 @@ func messageCreate(s *dgo.Session, m *dgo.MessageCreate) {
 	// Do something with those commands
 	switch message[0] {
 	case play:
-		playCommand(s, m, message[1])
+		filename := playCommand(s, m, message[1])
+
+		buffer := make([][]byte, 0)
+		err := loadSong("./assets/audios/"+filename, &buffer)
+
+		if err != nil {
+			reply(s, m, "Could not load file.")
+		}
+
+		playSong(s, m, &buffer)
+
 	case stop:
 		// Stop all musics from playing
 		reply(s, m, fmt.Sprintf("You typed %s", stop))
@@ -138,16 +152,102 @@ func disbandCommand(s *dgo.Session, m *dgo.MessageCreate) {
 
 }
 
-func playCommand(s *dgo.Session, m *dgo.MessageCreate, title string) {
-	err := ytdl.DownloadDca(title, "./assets/audios/")
+func playCommand(s *dgo.Session, m *dgo.MessageCreate, title string) string {
+	summonCommand(s, m)
+	filename, err := ytdl.DownloadDca(title, "./assets/audios/")
 	if err != nil {
 		reply(s, m, "Error while downloading the file. Check `!search` to see if your music exists.")
 		fmt.Println(err)
-		return
+		return ""
 	}
 
 	// Make a download audio and play audio func later
 
 	reply(s, m, "Download successfull")
+
+	return filename
+
+}
+
+// Loads the song as shown in discordgo example, in this case it takes as
+// parameter a pointer to a buffer in order to reset the buffer every new
+// command, instead of a global variable.
+func loadSong(filepath string, buffer *[][]byte) error {
+	fmt.Println("Loading song to buffer")
+	file, err := os.Open(filepath)
+	if err != nil {
+		return err
+	}
+
+	var opuslen int16
+
+	for {
+		err = binary.Read(file, binary.LittleEndian, &opuslen)
+		fmt.Println(opuslen)
+
+		fmt.Println("Before EOF thingy")
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			fmt.Println("Inside EOF check, before close")
+			err = file.Close()
+			if err != nil {
+				fmt.Println("Inside error close")
+				fmt.Println(err)
+				return err
+			}
+			fmt.Println("Before return nil")
+			return nil
+		}
+
+		fmt.Println("Before error nil check 1")
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println("Before creating InBuf")
+		if opuslen < 0 {
+			opuslen = opuslen * -1
+		}
+		InBuf := make([]byte, opuslen)
+		fmt.Println("Before reading to InBuf")
+		err := binary.Read(file, binary.LittleEndian, &InBuf)
+
+		fmt.Println("Before error nil check 2")
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		fmt.Println("Before appending InBuf to buffer")
+		*buffer = append(*buffer, InBuf)
+	}
+}
+
+func playSong(s *dgo.Session, m *dgo.MessageCreate, buffer *[][]byte) error {
+	fmt.Println("Playing song from buffer")
+	c, err := s.State.Channel(m.ChannelID)
+	if err != nil {
+		return err
+	}
+	vc, ok := s.VoiceConnections[c.GuildID]
+	if !ok {
+		return errors.New("Voice connection not found.")
+	}
+
+	time.Sleep(time.Millisecond * 250)
+
+	vc.Speaking(true)
+
+	fmt.Println("Sending audio")
+	for _, buff := range *buffer {
+		vc.OpusSend <- buff
+	}
+
+	vc.Speaking(false)
+	fmt.Println("Finished sending.")
+
+	time.Sleep(time.Millisecond * 250)
+
+	return nil
 
 }
