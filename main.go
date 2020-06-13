@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/SunkPlane29/discordbot/pkg/ytdl"
 	dgo "github.com/bwmarrin/discordgo"
 )
 
@@ -63,14 +64,12 @@ func messageCreate(s *dgo.Session, m *dgo.MessageCreate) {
 
 	fmt.Printf("New message from %s: %s\n", m.Author.Username, m.Content)
 
-	message := strings.Split(m.Content, " ")
+	message := strings.SplitN(m.Content, " ", 2)
 
 	// Do something with those commands
 	switch message[0] {
 	case play:
-		// Play music read and stored into a buffer. This process of storing as
-		// well as downloading will be on command time. Expect long waiting.
-		reply(s, m, fmt.Sprintf("You typed %s", play))
+		playCommand(s, m, message[1])
 	case stop:
 		// Stop all musics from playing
 		reply(s, m, fmt.Sprintf("You typed %s", stop))
@@ -89,6 +88,8 @@ func messageCreate(s *dgo.Session, m *dgo.MessageCreate) {
 		disbandCommand(s, m)
 	case help:
 		helpCommand(s, m)
+	default:
+		fmt.Println("No command")
 	}
 }
 
@@ -134,5 +135,19 @@ func disbandCommand(s *dgo.Session, m *dgo.MessageCreate) {
 		return
 	}
 	vc.Disconnect()
+
+}
+
+func playCommand(s *dgo.Session, m *dgo.MessageCreate, title string) {
+	err := ytdl.DownloadDca(title, "./assets/audios/")
+	if err != nil {
+		reply(s, m, "Error while downloading the file. Check `!search` to see if your music exists.")
+		fmt.Println(err)
+		return
+	}
+
+	// Make a download audio and play audio func later
+
+	reply(s, m, "Download successfull")
 
 }
