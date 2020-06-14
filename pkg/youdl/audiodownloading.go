@@ -1,6 +1,7 @@
-package ytdl
+package youdl
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -52,13 +53,15 @@ func convertDca(filepath, filename string) error {
 func downloadAudio(title string) (string, error) {
 	response, err := findVideos(title, 5)
 	if err != nil {
+		fmt.Println("Error fiding the video.")
 		return "", err
 	}
 	videos := parseResponse(response)
 	downloadUrl := formatDownloadUrl(videos.Items[0].Id.VideoId)
-	cmd := exec.Command("youtube-dl", "--config-location", "pkg/ytdl/youtube-dl.conf", downloadUrl)
+	cmd := exec.Command("youtube-dl", "--config-location", "pkg/youdl/youtube-dl.conf", downloadUrl)
 	err = cmd.Run()
 	if err != nil {
+		fmt.Println("Error running the command")
 		return "", err
 	}
 	return videos.Items[0].Id.VideoId, nil

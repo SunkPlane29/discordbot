@@ -1,4 +1,4 @@
-package ytdl
+package youdl
 
 import (
 	"encoding/json"

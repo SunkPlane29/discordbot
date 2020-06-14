@@ -1,10 +1,11 @@
-package ytdl
+package youdl
 
 import (
 	"fmt"
 	"testing"
 )
 
+// Passed
 func TestFindVideosIDs(t *testing.T) {
 	response, err := findVideos("kero kero break", 5)
 	if err != nil {
