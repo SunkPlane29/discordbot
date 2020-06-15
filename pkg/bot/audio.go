@@ -11,8 +11,8 @@ import (
 	dgo "github.com/bwmarrin/discordgo"
 )
 
-// Functions cuncurrently with playSong, but with a headstart, the frames are
-// sent to the channel passed as parameters.
+// Reads the file and send the frames to the ch(channel), when done reading
+// it sends a nil error to the doneCh.
 func loadSong(filepath string, ch chan []byte, doneCh chan error) error {
 	fmt.Println("Loading song to buffer")
 	file, err := os.Open(filepath)
@@ -29,9 +29,8 @@ func loadSong(filepath string, ch chan []byte, doneCh chan error) error {
 	for {
 		err = binary.Read(file, binary.LittleEndian, &opuslen)
 		if err == io.EOF || err == io.ErrUnexpectedEOF {
-			// When we reach the end of the file, the other goroutine has not
-			// so we wait until it collects everything from the ch and send the done
-			// signal.
+			// As the other goroutine hasn't finished sending the song
+			// we give it a little time.
 			time.Sleep(time.Second * 30)
 			file.Close()
 			return nil
@@ -42,8 +41,8 @@ func loadSong(filepath string, ch chan []byte, doneCh chan error) error {
 			return err
 		}
 
-		// The first few []byte are too big and probably are metadata, so we don't
-		// use them, it fixes the starting bug.
+		// The fist few []byte are huge and not part of the song, so we don't
+		// send it. Without this the beggining of the song won't load.
 		if opuslen > 500 {
 			continue
 		}

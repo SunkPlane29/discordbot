@@ -7,14 +7,9 @@ import (
 	dgo "github.com/bwmarrin/discordgo"
 )
 
+// Reply command.
 func Reply(s *dgo.Session, m *dgo.MessageCreate, msg string) {
 	s.ChannelMessageSend(m.ChannelID, msg)
-}
-
-// Display all available commands, explain them later or use the slice.
-func HelpCommand(s *dgo.Session, m *dgo.MessageCreate) {
-
-	Reply(s, m, "Life is not easy bro, no help during development :(")
 }
 
 // Summons the bot to the caller's voice channel
@@ -56,7 +51,7 @@ func DisbandCommand(s *dgo.Session, m *dgo.MessageCreate) {
 
 }
 
-// Downloads the music files, change the load and play function to be called here
+// Downloads the music files, encode to dca and later send them.
 func PlayCommand(s *dgo.Session, m *dgo.MessageCreate, title string) {
 	filedir := "./assets/audios/"
 	filename, err := youdl.DownloadDca(title, filedir)
@@ -75,6 +70,8 @@ func PlayCommand(s *dgo.Session, m *dgo.MessageCreate, title string) {
 	ch := make(chan []byte, 1024)
 	doneCh := make(chan error)
 
+	// One goroutine for handling loading the song and the other to send
+	// the frames to the voice connection.
 	go func(filepath string, ch chan []byte, doneChc chan error) {
 		err := loadSong(filepath, ch, doneCh)
 		if err != nil {
