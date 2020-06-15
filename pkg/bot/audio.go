@@ -41,6 +41,10 @@ func loadSong(filepath string, ch chan []byte, doneCh chan error) error {
 			return err
 		}
 
+		if opuslen < 0 {
+			opuslen = opuslen * -1
+		}
+
 		// The fist few []byte are huge and not part of the song, so we don't
 		// send it. Without this the beggining of the song won't load.
 		if opuslen > 500 {
